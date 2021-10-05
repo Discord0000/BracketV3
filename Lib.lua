@@ -558,8 +558,8 @@ function Library:CreateWindow(Config, Parent)
 
 				local DropdownToggle = false
 
-				Dropdown.MouseButton1Click:Connect(function()
-					DropdownToggle = not DropdownToggle
+        local function openOrCloseDrwp(open)
+					DropdownToggle = open
 					if DropdownToggle then
 						Dropdown.Size = UDim2.new(1,-10,0,Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y + Dropdown.Title.TextBounds.Y + 30)
 						Dropdown.Container.Holder.Visible = true
@@ -567,7 +567,12 @@ function Library:CreateWindow(Config, Parent)
 						Dropdown.Size = UDim2.new(1,-10,0,Dropdown.Title.TextBounds.Y + 25)
 						Dropdown.Container.Holder.Visible = false
 					end
-				end)
+        end
+
+
+				Dropdown.MouseButton1Click:Connect(function()
+          openOrCloseDrwp(not DropdownToggle)
+        end)
 
         local function drawoptions(OptionTable)
           for _,OptionName in pairs(OptionTable) do
@@ -614,13 +619,7 @@ function Library:CreateWindow(Config, Parent)
 					end
 				end
 
-      function DropdownInit:SetOptions(newoptions)
-        OptionTable = newoptions
-          for i,v in next, Dropdown.Container.Holder.Container:GetChildren() do
-              v:Destroy()
-          end
-          drawoptions(newoptions)
-      end
+
 
 				function DropdownInit:GetOption()
 					return Dropdown.Container.Value.Text
@@ -651,12 +650,24 @@ function Library:CreateWindow(Config, Parent)
 					Dropdown.Container.Holder.Size = UDim2.new(1,-5,0,Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y)
 					Dropdown.Size = UDim2.new(1,-10,0,Dropdown.Container.Holder.Container.ListLayout.AbsoluteContentSize.Y + Dropdown.Title.TextBounds.Y + 30)
 				end
-				
+        function DropdownInit:SetOptions(newoptions)
+            local oldState = DropdownToggle
+            openOrCloseDrwp(false)
+            task.wait(0.1)
+            DropdownInit:ClearOptions()
+            task.wait(0.1)
+            drawoptions(newoptions)
+            if oldState then
+              openOrCloseDrwp(oldState)
+            end
+        end
+
 				if InitialValue then
 					DropdownInit:SetOption(InitialValue)
 				end
 				return DropdownInit
 			end
+      
 			function SectionInit:CreateColorpicker(Name,Callback)
 				local ColorpickerInit = {}
 				local Colorpicker = Folder.Colorpicker:Clone()
